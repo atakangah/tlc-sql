@@ -1,0 +1,92 @@
+Q1.
+select count(*) 
+from mb_auction 
+where (enddate::date - startdate::date) < 10;
+
+count|
+-----+
+   10|
+
+
+Q2.
+select mi.description, ma.enddate, ma.reserve 
+from mb_auction ma 
+inner join mb_item mi
+on mi.itemid = ma.itemid 
+where status = 'pending'
+order by reserve desc;
+
+description        |enddate                |reserve|
+-------------------+-----------------------+-------+
+IPhad One          |2011-02-27 23:59:00.000|    200|
+Suede Jacket       |2011-02-25 23:59:00.000|     60|
+Onesies (qty: five)|2011-02-25 23:59:00.000|     10|
+
+
+Q3.
+select distinct name
+from mb_user mu 
+inner join mb_bid mb 
+on mu.userid = mb.bidder
+inner join mb_auction ma 
+on ma.userid = mu.userid;
+
+name          |
+--------------+
+Carrie Oakey  |
+Dave Mal One  |
+George Foreman|
+
+
+Q4.
+
+
+
+
+Q5.
+select mb.auctionid, max(mb.amount) "Winning amount" 
+from mb_auction ma
+inner join mb_bid mb
+on mb.auctionid = ma.auctionid
+group by mb.auctionid, ma.status 
+having ma.status = 'sold';
+
+
+auctionid|Winning amount|
+---------+--------------+
+        4|           371|
+        7|          8001|
+        8|           250|
+       10|           475|
+
+
+
+Q6.
+select ma2.enddate, mi.description, 
+case when ma2.winner is null then '=='
+else (select name from mb_user mu where mu.userid = ma2.userid)
+end
+from (
+select mb.auctionid, max(mb.amount) "Winning amount" 
+from mb_auction ma
+inner join mb_bid mb
+on mb.auctionid = ma.auctionid
+group by mb.auctionid, ma.status ) k
+inner join mb_auction ma2
+on k.auctionid = ma2.auctionid
+inner join mb_item mi 
+on mi.itemid = ma2.itemid;
+
+enddate                |description                     |name          |
+-----------------------+--------------------------------+--------------+
+2011-01-20 23:59:00.000|Penny Farthing Bicycle          |==            |
+2011-01-10 23:59:00.000|Donkey Kong                     |==            |
+2011-01-20 23:59:00.000|Donkey Kong                     |George Foreman|
+2011-01-30 23:59:00.000|Penny Farthing Bicycle          |Dave Mal One  |
+2011-01-03 23:59:00.000|Aston Martin (light kerb damage)|==            |
+2011-02-25 23:59:00.000|Suede Jacket                    |==            |
+2011-01-15 23:59:00.000|Socks                           |Dave Mal One  |
+2011-01-15 23:59:00.000|Donkey Kong                     |==            |
+2011-01-08 23:59:00.000|Aston Martin (light kerb damage)|==            |
+2011-01-12 23:59:00.000|Georgian Dresser                |George Foreman|
+2011-01-05 23:59:00.000|Donkey Kong                     |==            |
